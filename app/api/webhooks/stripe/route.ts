@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { supabaseAdmin as supabase } from "@/lib/supabase/admin";
 import type { StripePrice, StripeProduct } from "@/lib/types";
 import type { PostgrestError } from "@supabase/supabase-js";
 
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const body = await req.text();
   let event: Stripe.Event;
 
-  const supabase = createAdminClient();
+
   const stripe = new Stripe(
     process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
       ? process.env.STRIPE_SECRET_KEY!

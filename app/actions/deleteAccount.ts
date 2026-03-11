@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient } from "@/lib/supabase/admin";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
@@ -12,7 +12,7 @@ type FormState = {
 export async function deleteAccount(prevState: FormState, formData: FormData) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-  const supabaseAdmin = createAdminClient();
+
 
   const confirmation = formData.get("deleteConfirmation") as string;
   if (confirmation !== "delete my account")
