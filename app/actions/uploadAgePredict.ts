@@ -1,7 +1,7 @@
 "use server";
 
 import Replicate, { Prediction } from "replicate";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
@@ -30,7 +30,7 @@ export async function uploadAgePredict(previousState: any, formData: FormData) {
 
   const buffer = await image.arrayBuffer();
 
-  const supabaseAdmin = createAdminClient();
+
 
   const { data: storageData, error: storageError } = await supabaseAdmin.storage
     .from("temp")
@@ -76,7 +76,7 @@ export async function uploadAgePredict(previousState: any, formData: FormData) {
 }
 
 async function deleteImage({ path }: { path: string }) {
-  const supabaseAdmin = createAdminClient();
+
   await supabaseAdmin.storage.from("temp").remove([path]);
 }
 

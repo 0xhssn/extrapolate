@@ -1,7 +1,7 @@
 "use server";
 
 import Replicate from "replicate";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
@@ -29,7 +29,7 @@ export async function upload(previousState: any, formData: FormData) {
   if (!credits || credits < 10)
     return { message: "Not enough credits, please buy more", status: 402 };
 
-  const supabaseAdmin = createAdminClient();
+
 
   const image = formData.get("image") as File;
   if (!image) {
@@ -107,7 +107,7 @@ async function setRandomKey(user_id: string): Promise<{ key: string }> {
 }
 
 async function getCredits(user_id: string) {
-  const supabaseAdmin = createAdminClient();
+
 
   const { data } = await supabaseAdmin
     .from("users")
@@ -118,7 +118,7 @@ async function getCredits(user_id: string) {
 }
 
 async function updateCredits(user_id: string, credit_amount: number) {
-  const supabaseAdmin = createAdminClient();
+
 
   await supabaseAdmin.rpc("update_credits", {
     user_id: user_id,
