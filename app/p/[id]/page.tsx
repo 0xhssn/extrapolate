@@ -12,6 +12,13 @@ import { notFound } from "next/navigation";
 async function getData(id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
+  
+  // Get current user session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Fetch the photo data
   const { data } = await supabase
     .from("data")
     .select("*")
@@ -19,6 +26,11 @@ async function getData(id: string) {
     .single();
 
   if (!data) return notFound();
+
+  // Verify user ownership - only the owner can view their photos
+  if (!session?.user || data.user_id !== session.user.id) {
+    return notFound();
+  }
 
   return data;
 }
