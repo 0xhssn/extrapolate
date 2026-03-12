@@ -41,6 +41,7 @@ import { CircleCheck } from "lucide-react";
 import { BackgroundGradient } from "@/components/aceternity-ui/background-gradient";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type CheckoutDialogStore = {
   open: boolean;
@@ -143,6 +144,17 @@ export function CheckoutDialog() {
 }
 
 function Pricing({ products }: { products: Product[] | null | undefined }) {
+  // Show skeleton loaders while products are being fetched
+  if (!products) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center space-y-4 bg-muted px-4 py-8">
+        {[0, 1, 2].map((index) => (
+          <ProductCardSkeleton key={index} isPopular={index === 1} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex w-full flex-col items-center justify-center space-y-4 bg-muted px-4 py-8">
       {products?.map((product, index) => {
@@ -246,5 +258,59 @@ function CheckoutButton({ product }: { product: Product | null | undefined }) {
         </>
       )}
     </Button>
+  );
+}
+
+function ProductCardSkeleton({ isPopular }: { isPopular?: boolean }) {
+  const cardContent = (
+    <>
+      <div>
+        <div className="p-0 pb-3">
+          <div className="flex flex-row items-center">
+            <Skeleton className="h-6 w-24" />
+            {isPopular && <Skeleton className="ml-2 h-5 w-16" />}
+          </div>
+          <Skeleton className="mt-2 h-4 w-32" />
+        </div>
+        <div className="p-0">
+          <div className="flex flex-row space-x-2">
+            <div className="flex flex-row items-center">
+              <Skeleton className="mr-2 size-4 rounded-full" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="flex flex-row items-center">
+              <Skeleton className="mr-2 size-4 rounded-full" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center p-0">
+        <Skeleton className="h-10 w-24 rounded-md" />
+      </div>
+    </>
+  );
+
+  if (isPopular) {
+    return (
+      <BackgroundGradient
+        containerClassName={cn(
+          "rounded-lg bg-card text-card-foreground shadow-sm",
+          "rounded-2xl w-full",
+          "p-[2.5px]",
+        )}
+        className={cn(
+          "flex flex-row justify-between rounded-[14px] bg-background p-3",
+        )}
+      >
+        {cardContent}
+      </BackgroundGradient>
+    );
+  }
+
+  return (
+    <Card className="flex w-full flex-row justify-between rounded-2xl p-3">
+      {cardContent}
+    </Card>
   );
 }
