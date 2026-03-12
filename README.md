@@ -123,6 +123,42 @@ export default {
 
 </details>
 
+## End-to-End Testing
+
+Extrapolate uses Playwright for comprehensive end-to-end testing.
+
+### Running Tests
+
+1. Install dependencies:
+
+```bash
+npm install
+npm run test:e2e:install
+```
+
+2. Run tests:
+
+```bash
+# Run all tests
+npm run test:e2e
+
+# Run tests in UI mode
+npm run test:e2e:ui
+
+# Generate and view test report
+npm run test:e2e:report
+```
+
+### Test Coverage
+
+Our E2E tests cover critical user flows:
+
+- User authentication
+- Credit purchasing
+- Photo upload
+- Image generation
+- Error handling
+
 ## Author
 
 - Steven Tey ([@steventey](https://twitter.com/steventey))

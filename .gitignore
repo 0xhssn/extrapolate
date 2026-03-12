@@ -21,3 +21,9 @@ next-env.d.ts
 /supabase/.temp
 /supabase/.env
 .env*.local
+
+# Playwright
+/playwright-report/
+/test-results/
+/playwright/.cache/
+.env.test
