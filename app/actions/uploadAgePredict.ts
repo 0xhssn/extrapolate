@@ -1,6 +1,6 @@
 "use server";
 
-import Replicate, { Prediction } from "replicate";
+import Replicate from "replicate";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +46,8 @@ export async function uploadAgePredict(previousState: any, formData: FormData) {
     };
 
   try {
+    // Create prediction and wait for completion using Replicate SDK
+    // This keeps the API token secure on the server side
     const prediction = await replicate.predictions.create({
       version:
         "0c3080879f50097e4f7847c68a22d9586fd69196bed06239b85688d02c93d2eb",
@@ -59,15 +61,32 @@ export async function uploadAgePredict(previousState: any, formData: FormData) {
       prediction.status === "failed" ||
       prediction.status === "canceled"
     ) {
+      waitUntil(deleteImage({ path: storageData?.path }));
       return { message: "Prediction error generating age", status: 500 };
     }
 
-    const get = prediction.urls.get;
-    const output = pollExtrapolate({ url: get, timeout: 5000 });
+    // Use Replicate SDK's wait method to poll securely on the server
+    // This prevents API token exposure to the client
+    const result = await replicate.wait(prediction, {
+      interval: 500, // Poll every 500ms
+    });
+
+    // Clean up temp image
     waitUntil(deleteImage({ path: storageData?.path }));
-    return output;
+
+    if (result.status === "succeeded" && result.output) {
+      return {
+        message: `You look like you are ${result.output} years old.`,
+        status: 200,
+      };
+    } else if (result.status === "failed" || result.status === "canceled") {
+      return { message: "Prediction failed to generate age", status: 500 };
+    } else {
+      return { message: "Unexpected prediction status", status: 500 };
+    }
   } catch (e) {
     console.log("e", e);
+    waitUntil(deleteImage({ path: storageData?.path }));
     return {
       message: "Unexpected error generating age, please try again",
       status: 500,
@@ -78,42 +97,4 @@ export async function uploadAgePredict(previousState: any, formData: FormData) {
 async function deleteImage({ path }: { path: string }) {
   const supabaseAdmin = createAdminClient();
   await supabaseAdmin.storage.from("temp").remove([path]);
-}
-
-async function pollExtrapolate({
-  url,
-  timeout,
-}: {
-  url: string;
-  timeout: number;
-}) {
-  const startTime = new Date().getTime();
-
-  for (let i = 0; ; i++) {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-        },
-      });
-      const data: Prediction = await response.json();
-      if (data.status === "succeeded") {
-        return {
-          message: `You look like you are ${data.output} years old.`,
-          status: 200,
-        };
-      }
-    } catch (error) {
-      return { message: "Unexpected error occurred", status: 500 };
-    }
-
-    // Check for timeout
-    const currentTime = new Date().getTime();
-    if (currentTime - startTime > timeout) {
-      return { message: "Function timed out", status: 504 };
-    }
-
-    // Wait 0.5 seconds before polling again
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
 }
