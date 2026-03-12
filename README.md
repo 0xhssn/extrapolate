@@ -20,11 +20,10 @@
   <a href="#introduction"><strong>Introduction</strong></a> ·
   <a href="#features"><strong>Features</strong></a> ·
   <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
+  <a href="./docs"><strong>Documentation</strong></a> ·
   <a href="#author"><strong>Author</strong></a>
 </p>
 <br/>
-
---NEW README COMING SOON--
 
 ## Introduction
 
@@ -34,8 +33,47 @@ https://user-images.githubusercontent.com/28986134/213781048-d215894d-2286-4176-
 
 ## Features
 
-- 3s GIF of your face as it ages through time 🧓
-- Store & retrieve photos from [Cloudflare R2](https://www.cloudflare.com/lp/pg-r2/) using Workers
+- AI-powered age transformation using Replicate
+- 3s GIF of your face as it ages through time
+- Google OAuth authentication via Supabase
+- Credit-based payment system with Stripe
+- Real-time processing updates
+- Image storage with Supabase Storage
+- Responsive design with Tailwind CSS
+- End-to-end testing with Playwright
+
+## Documentation
+
+Comprehensive developer documentation is available in the [`docs`](./docs) directory:
+
+- **[Overview](./docs/01-overview.md)** - Architecture, tech stack, and core concepts
+- **[Setup Guide](./docs/02-setup.md)** - Installation and configuration instructions
+- **[Usage Guide](./docs/03-usage.md)** - How to use the application features
+- **[API Reference](./docs/04-api-reference.md)** - Server actions, webhooks, and endpoints
+- **[Examples](./docs/05-examples.md)** - Code examples and common patterns
+- **[Troubleshooting](./docs/06-troubleshooting.md)** - Common issues and solutions
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/extrapolate.git
+cd extrapolate
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your credentials
+
+# Run the development server
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) to see the application.
+
+For detailed setup instructions, see the [Setup Guide](./docs/02-setup.md).
 
 ## Deploy Your Own
 
