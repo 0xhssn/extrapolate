@@ -11,6 +11,7 @@ import {
   SignInDialog,
   useSignInDialog,
 } from "@/components/layout/sign-in-dialog";
+import { UploadDialog } from "@/components/home/upload-dialog";
 import { Tables } from "@/lib/supabase/types_db";
 import { create } from "zustand";
 
@@ -49,6 +50,7 @@ export default function Navbar() {
   return (
     <>
       <SignInDialog />
+      <UploadDialog />
       <div
         className={`fixed top-0 w-full ${
           scrolled

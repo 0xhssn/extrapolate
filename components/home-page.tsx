@@ -8,7 +8,7 @@ import { nFormatter } from "@/lib/utils";
 import PhotoBooth from "@/components/home/photo-booth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { UploadDialog, useUploadDialog } from "@/components/home/upload-dialog";
+import { useUploadDialog } from "@/components/home/upload-dialog";
 import { FAQ } from "@/components/home/faq";
 import { useUserDataStore } from "@/components/layout/navbar";
 import { useSignInDialog } from "@/components/layout/sign-in-dialog";
@@ -27,7 +27,6 @@ export default function HomePage({ count }: { count: number | null }) {
   const userData = useUserDataStore((s) => s.userData);
   return (
     <div className="flex flex-col items-center justify-center">
-      <UploadDialog />
       {/*<AgePredictDialog />*/}
       <motion.div
         className="z-10 max-w-2xl px-5 xl:px-0"

@@ -4,7 +4,7 @@ import Balancer from "react-wrap-balancer";
 import PhotoBooth from "@/components/home/photo-booth";
 import { useRouter } from "next/navigation";
 import { DataProps } from "@/lib/types";
-import { UploadDialog, useUploadDialog } from "@/components/home/upload-dialog";
+import { useUploadDialog } from "@/components/home/upload-dialog";
 import { useSignInDialog } from "@/components/layout/sign-in-dialog";
 import { useCheckoutDialog } from "@/components/layout/checkout-dialog";
 import { useUserDataStore } from "@/components/layout/navbar";
@@ -30,9 +30,6 @@ export function GalleryPage({ data }: { data: DataProps[] | null }) {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      {/* Mount the dialog so it can be triggered from this page */}
-      <UploadDialog />
-
       <div className="bg-gradient-to-br from-black to-stone-500 bg-clip-text text-center font-display text-4xl font-bold tracking-[-0.02em] text-transparent drop-shadow-sm md:text-7xl md:leading-[5rem]">
         <Balancer>Gallery</Balancer>
       </div>
