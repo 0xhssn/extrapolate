@@ -24,6 +24,13 @@ import { LoadingDots } from "@/components/shared/icons";
 import { UploadCloud } from "lucide-react";
 import { useFormState, useFormStatus } from "react-dom";
 import { uploadAgePredict } from "@/app/actions/uploadAgePredict";
+import {
+  validateUploadFile,
+  ACCEPT_INPUT_STRING,
+  ALLOWED_FORMATS_LABEL,
+  MAX_FILE_SIZE_LABEL,
+  type FileValidationError,
+} from "@/lib/validations/upload";
 
 type AgePredictDialogStore = {
   open: boolean;
@@ -107,27 +114,36 @@ export function UploadForm() {
     image: null,
   });
 
-  const [fileSizeTooBig, setFileSizeTooBig] = useState(false);
+  const [validationError, setValidationError] =
+    useState<FileValidationError>(null);
 
   const [dragActive, setDragActive] = useState(false);
 
+  const handleFile = useCallback(
+    (file: File | null | undefined) => {
+      setValidationError(null);
+      if (!file) return;
+
+      const error = validateUploadFile(file);
+      if (error) {
+        setValidationError(error);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setData((prev) => ({ ...prev, image: e.target?.result as string }));
+      };
+      reader.readAsDataURL(file);
+    },
+    [],
+  );
+
   const onChangePicture = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      setFileSizeTooBig(false);
-      const file = event.currentTarget.files && event.currentTarget.files[0];
-      if (file) {
-        if (file.size / 1024 / 1024 > 10) {
-          setFileSizeTooBig(true);
-        } else {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            setData((prev) => ({ ...prev, image: e.target?.result as string }));
-          };
-          reader.readAsDataURL(file);
-        }
-      }
+      handleFile(event.currentTarget.files?.[0]);
     },
-    [setData],
+    [handleFile],
   );
 
   // Move to useActionState in future release of Next.js
@@ -144,8 +160,8 @@ export function UploadForm() {
       <div>
         <div className="flex items-center justify-between">
           <p className="block text-sm font-medium text-gray-700">Photo</p>
-          {fileSizeTooBig && (
-            <p className="text-sm text-red-500">File size too big (max 5MB)</p>
+          {validationError && (
+            <p className="text-sm text-red-500">{validationError.message}</p>
           )}
         </div>
         <label
@@ -173,22 +189,7 @@ export function UploadForm() {
               e.preventDefault();
               e.stopPropagation();
               setDragActive(false);
-              setFileSizeTooBig(false);
-              const file = e.dataTransfer.files && e.dataTransfer.files[0];
-              if (file) {
-                if (file.size / 1024 / 1024 > 10) {
-                  setFileSizeTooBig(true);
-                } else {
-                  const reader = new FileReader();
-                  reader.onload = (e) => {
-                    setData((prev) => ({
-                      ...prev,
-                      image: e.target?.result as string,
-                    }));
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }
+              handleFile(e.dataTransfer.files?.[0]);
             }}
           />
           <div
@@ -211,6 +212,9 @@ export function UploadForm() {
             <p className="mt-2 text-center text-sm text-gray-500">
               Recommended: 1:1 square ratio, with a clear view of your face
             </p>
+            <p className="mt-1 text-center text-xs text-gray-400">
+              {ALLOWED_FORMATS_LABEL} · Max {MAX_FILE_SIZE_LABEL}
+            </p>
             <span className="sr-only">Photo upload</span>
           </div>
           {data.image && (
@@ -227,7 +231,7 @@ export function UploadForm() {
             id="image-upload"
             name="image"
             type="file"
-            accept="image/*"
+            accept={ACCEPT_INPUT_STRING}
             className="sr-only"
             onChange={onChangePicture}
           />

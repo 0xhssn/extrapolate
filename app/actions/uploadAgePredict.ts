@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
 import { waitUntil } from "@vercel/functions";
+import { validateUploadFileServer } from "@/lib/validations/upload";
 
 export async function uploadAgePredict(previousState: any, formData: FormData) {
   const replicate = new Replicate({
@@ -27,6 +28,10 @@ export async function uploadAgePredict(previousState: any, formData: FormData) {
   if (!image) {
     return { message: "Missing image", status: 400 };
   }
+
+  // Validate file size and type before any processing
+  const validationError = validateUploadFileServer(image);
+  if (validationError) return validationError;
 
   const buffer = await image.arrayBuffer();
 

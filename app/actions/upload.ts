@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
 import { redirect } from "next/navigation";
 import { getDomain } from "@/lib/utils";
+import { validateUploadFileServer } from "@/lib/validations/upload";
 // import { waitUntil } from "@vercel/functions";
 
 export async function upload(previousState: any, formData: FormData) {
@@ -35,6 +36,10 @@ export async function upload(previousState: any, formData: FormData) {
   if (!image) {
     return { message: "Missing image", status: 400 };
   }
+
+  // Validate file size and type before any processing
+  const validationError = validateUploadFileServer(image);
+  if (validationError) return validationError;
 
   // Handle request
   // Generate key and insert id to supabase
