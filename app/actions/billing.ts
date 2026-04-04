@@ -5,8 +5,9 @@ import Stripe from "stripe";
 import { getDomain } from "@/lib/utils";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/lib/types";
 
-export async function billing() {
+export async function billing(): Promise<ActionResult> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 

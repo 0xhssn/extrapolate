@@ -24,6 +24,7 @@ import { LoadingDots } from "@/components/shared/icons";
 import { UploadCloud } from "lucide-react";
 import { useFormState, useFormStatus } from "react-dom";
 import { upload } from "@/app/actions/upload";
+import type { ActionResult } from "@/lib/types";
 
 type UploadDialogStore = {
   open: boolean;
@@ -131,10 +132,10 @@ export function UploadForm() {
   );
 
   // Move to useActionState in future release of Next.js
-  const [state, uploadFormAction] = useFormState(upload, {
-    message: "",
-    status: 0,
-  });
+  const [state, uploadFormAction] = useFormState<ActionResult, FormData>(
+    upload,
+    { message: "", status: 0 },
+  );
 
   return (
     <form

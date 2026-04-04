@@ -3,13 +3,12 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import type { ActionResult } from "@/lib/types";
 
-type FormState = {
-  message: string;
-  status: number;
-};
-
-export async function deleteAccount(prevState: FormState, formData: FormData) {
+export async function deleteAccount(
+  prevState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
   const supabaseAdmin = createAdminClient();

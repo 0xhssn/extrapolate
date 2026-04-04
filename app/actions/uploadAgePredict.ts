@@ -6,8 +6,12 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
 import { waitUntil } from "@vercel/functions";
+import type { ActionResult } from "@/lib/types";
 
-export async function uploadAgePredict(previousState: any, formData: FormData) {
+export async function uploadAgePredict(
+  previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const replicate = new Replicate({
     // get your token from https://replicate.com/account
     auth: process.env.REPLICATE_API_TOKEN || "",
@@ -86,7 +90,7 @@ async function pollExtrapolate({
 }: {
   url: string;
   timeout: number;
-}) {
+}): Promise<ActionResult> {
   const startTime = new Date().getTime();
 
   for (let i = 0; ; i++) {

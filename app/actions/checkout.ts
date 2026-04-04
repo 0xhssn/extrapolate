@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import Stripe from "stripe";
 import { getDomain } from "@/lib/utils";
 import { redirect } from "next/navigation";
+import type { ActionResult } from "@/lib/types";
 
 export async function checkout({
   price_id,
@@ -12,7 +13,7 @@ export async function checkout({
 }: {
   price_id: string;
   credits: number;
-}) {
+}): Promise<ActionResult> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 

@@ -27,6 +27,7 @@ import { deleteAccount } from "@/app/actions/deleteAccount";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormState, useFormStatus } from "react-dom";
+import type { ActionResult } from "@/lib/types";
 
 type DeleteDialogStore = {
   open: boolean;
@@ -116,10 +117,10 @@ export function DeleteAccountDialog() {
 }
 
 function DeleteAccountForm() {
-  const [state, deleteAccountFormAction] = useFormState(deleteAccount, {
-    message: "",
-    status: 0,
-  });
+  const [state, deleteAccountFormAction] = useFormState<ActionResult, FormData>(
+    deleteAccount,
+    { message: "", status: 0 },
+  );
 
   useEffect(() => {
     if (state.message.includes("Successfully deleted account for")) {

@@ -24,6 +24,7 @@ import { LoadingDots } from "@/components/shared/icons";
 import { UploadCloud } from "lucide-react";
 import { useFormState, useFormStatus } from "react-dom";
 import { uploadAgePredict } from "@/app/actions/uploadAgePredict";
+import type { ActionResult } from "@/lib/types";
 
 type AgePredictDialogStore = {
   open: boolean;
@@ -131,10 +132,10 @@ export function UploadForm() {
   );
 
   // Move to useActionState in future release of Next.js
-  const [state, uploadFormAction] = useFormState(uploadAgePredict, {
-    message: "",
-    status: 0,
-  });
+  const [state, uploadFormAction] = useFormState<ActionResult, FormData>(
+    uploadAgePredict,
+    { message: "", status: 0 },
+  );
 
   return (
     <form

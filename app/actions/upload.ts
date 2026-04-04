@@ -7,9 +7,13 @@ import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
 import { redirect } from "next/navigation";
 import { getDomain } from "@/lib/utils";
+import type { ActionResult } from "@/lib/types";
 // import { waitUntil } from "@vercel/functions";
 
-export async function upload(previousState: any, formData: FormData) {
+export async function upload(
+  previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const replicate = new Replicate({
     // get your token from https://replicate.com/account
     auth: process.env.REPLICATE_API_TOKEN || "",

@@ -1,6 +1,36 @@
 import type Stripe from "stripe";
 import { Tables } from "@/lib/supabase/types_db";
 
+// ---------------------------------------------------------------------------
+// Server Action return types
+// ---------------------------------------------------------------------------
+
+/**
+ * HTTP-style status codes returned by server actions.
+ * 0 is the initial/empty state used by useFormState before any submission.
+ */
+export type ActionStatus = 0 | 200 | 400 | 401 | 402 | 500 | 504;
+
+/**
+ * Consistent return type for all server actions.
+ *
+ * Actions that redirect on success (checkout, billing, upload) never reach a
+ * return statement on the happy path, so they return `ActionResult` only on
+ * the error path.  Actions that return on success (uploadAgePredict,
+ * deleteAccount) use status 200 to indicate success.
+ *
+ * The initial state passed to `useFormState` should be:
+ *   `{ message: "", status: 0 }`
+ */
+export type ActionResult = {
+  message: string;
+  status: ActionStatus;
+};
+
+// ---------------------------------------------------------------------------
+// Database / domain types
+// ---------------------------------------------------------------------------
+
 export type DataProps = Tables<"data">;
 
 export type UserData = Tables<"users">;
