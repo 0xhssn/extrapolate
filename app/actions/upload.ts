@@ -87,23 +87,37 @@ export async function upload(previousState: any, formData: FormData) {
   redirect(`/p/${key}`);
 }
 
-// Generates new key that doesn't already exist in db
-async function setRandomKey(user_id: string): Promise<{ key: string }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+// Generates a unique key via atomic INSERT; retries only on primary-key
+// conflicts (Postgres error code 23505) up to MAX_KEY_ATTEMPTS times.
+// Uses the admin client so that RLS policies never interfere, and avoids
+// recursion entirely to prevent stack overflows under concurrent load.
+const MAX_KEY_ATTEMPTS = 10;
 
-  /* recursively set link till successful */
-  const key = nanoid();
-  const { error } = await supabase.from("data").insert({
-    id: key,
-    input: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/input/${user_id}/${key}`,
-  });
-  if (error) {
-    // by the off chance that key already exists
-    return setRandomKey(user_id);
-  } else {
-    return { key };
+async function setRandomKey(user_id: string): Promise<{ key: string }> {
+  const supabaseAdmin = createAdminClient();
+
+  for (let attempt = 0; attempt < MAX_KEY_ATTEMPTS; attempt++) {
+    const key = nanoid();
+
+    const { error } = await supabaseAdmin.from("data").insert({
+      id: key,
+      user_id,
+    });
+
+    if (!error) {
+      return { key };
+    }
+
+    // 23505 = unique_violation (primary key already exists) — safe to retry.
+    // Any other error is a real failure that should not be retried silently.
+    if (error.code !== "23505") {
+      throw new Error(`Failed to insert key into database: ${error.message}`);
+    }
   }
+
+  throw new Error(
+    `Failed to generate a unique key after ${MAX_KEY_ATTEMPTS} attempts`
+  );
 }
 
 async function getCredits(user_id: string) {
