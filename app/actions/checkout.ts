@@ -2,8 +2,8 @@
 
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import Stripe from "stripe";
 import { getDomain } from "@/lib/utils";
+import { createStripeClient } from "@/lib/stripe";
 import { redirect } from "next/navigation";
 
 export async function checkout({
@@ -16,11 +16,7 @@ export async function checkout({
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const stripe = new Stripe(
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-      ? process.env.STRIPE_SECRET_KEY!
-      : process.env.STRIPE_SECRET_KEY_TEST!,
-  );
+  const stripe = createStripeClient();
 
   const { data: userData, error } = await supabase
     .from("users")
