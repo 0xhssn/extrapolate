@@ -168,6 +168,22 @@ ALTER TABLE ONLY "public"."users"
 
 CREATE OR REPLACE TRIGGER "customer" AFTER INSERT OR DELETE ON "public"."users" FOR EACH ROW EXECUTE FUNCTION "supabase_functions"."http_request"('https://extrapolate-new.vercel.app/api/webhooks/supabase/customer', 'POST', '{"Content-type":"application/json"}', '{}', '1000');
 
+-- Indexes for common query patterns
+-- data: gallery page (.match({ user_id, failed: false }).order("created_at", { ascending: false }))
+CREATE INDEX IF NOT EXISTS "idx_data_user_id_created_at" ON "public"."data" ("user_id", "created_at" DESC);
+
+-- data: partial index for non-failed gallery rows (more selective, smaller index)
+CREATE INDEX IF NOT EXISTS "idx_data_user_id_failed_created_at" ON "public"."data" ("user_id", "created_at" DESC) WHERE (failed = false);
+
+-- users: stripe_id lookup for future subscription management / idempotency
+CREATE INDEX IF NOT EXISTS "idx_users_stripe_id" ON "public"."users" ("stripe_id") WHERE (stripe_id IS NOT NULL);
+
+-- prices: get_products() JOIN prices ON products.id = prices.product
+CREATE INDEX IF NOT EXISTS "idx_prices_product" ON "public"."prices" ("product");
+
+-- products: get_products() WHERE products.active = true
+CREATE INDEX IF NOT EXISTS "idx_products_active" ON "public"."products" ("active") WHERE (active = true);
+
 ALTER TABLE ONLY "public"."data"
     ADD CONSTRAINT "data_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON UPDATE CASCADE ON DELETE SET NULL;
 
