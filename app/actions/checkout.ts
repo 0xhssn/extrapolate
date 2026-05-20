@@ -2,9 +2,9 @@
 
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import Stripe from "stripe";
 import { getDomain } from "@/lib/utils";
 import { redirect } from "next/navigation";
+import { getStripeClient, getStripeCustomerField } from "@/lib/stripe";
 
 export async function checkout({
   price_id,
@@ -16,11 +16,7 @@ export async function checkout({
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const stripe = new Stripe(
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-      ? process.env.STRIPE_SECRET_KEY!
-      : process.env.STRIPE_SECRET_KEY_TEST!,
-  );
+  const stripe = getStripeClient();
 
   const { data: userData, error } = await supabase
     .from("users")
@@ -31,10 +27,7 @@ export async function checkout({
   }
 
   const stripeCheckoutSession = await stripe.checkout.sessions.create({
-    customer:
-      process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-        ? userData.stripe_id!
-        : userData.stripe_id_dev!,
+    customer: getStripeCustomerField(userData),
     client_reference_id: userData?.id,
     // TODO: modal to show result
     success_url: getDomain(`/?success=true&credits=${credits}`),

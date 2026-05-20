@@ -19,23 +19,122 @@
 <p align="center">
   <a href="#introduction"><strong>Introduction</strong></a> ·
   <a href="#features"><strong>Features</strong></a> ·
+  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+  <a href="#project-structure"><strong>Project Structure</strong></a> ·
+  <a href="#environment-variables"><strong>Environment Variables</strong></a> ·
   <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
+  <a href="#development"><strong>Development</strong></a> ·
   <a href="#author"><strong>Author</strong></a>
 </p>
 <br/>
 
---NEW README COMING SOON--
-
 ## Introduction
 
-Extrapolate is an app for you to see how well you age by transforming your face with Artificial Intelligence.
-
-https://user-images.githubusercontent.com/28986134/213781048-d215894d-2286-4176-a200-f745b255ecbe.mp4
+Extrapolate transforms your face with AI to show how you might age through time. Upload a selfie and get a GIF of your face aging — powered by Next.js, Replicate, Stripe, Supabase, Upstash, and Cloudflare R2.
 
 ## Features
 
-- 3s GIF of your face as it ages through time 🧓
-- Store & retrieve photos from [Cloudflare R2](https://www.cloudflare.com/lp/pg-r2/) using Workers
+- **AI Age Transformation** — 3-second GIF of your face aging through time 🧓
+- **Credit-Based Purchases** — Buy credits and spend them on transformations via Stripe checkout
+- **Customer Portal** — Manage billing and credits through the Stripe billing portal
+- **Secure Storage** — Store & retrieve photos from Cloudflare R2 using Workers
+- **Rate Limiting** — API protection via Upstash Redis rate limiting
+- **Webhook Sync** — Stripe product/price catalog and customer management synced via webhooks
+- **Edge Runtime** — Webhook handlers run on the Vercel Edge for low-latency processing
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 14 (App Router, Server Actions) |
+| **Payments** | Stripe (Checkout, Billing Portal, Webhooks) |
+| **Database** | Supabase (PostgreSQL, Auth, Row-Level Security) |
+| **AI** | Replicate (age transformation model) |
+| **Storage** | Cloudflare R2 + Cloudflare Workers |
+| **Rate Limiting** | Upstash Redis |
+| **Styling** | Tailwind CSS, Radix UI, Framer Motion |
+| **Analytics** | Dub Analytics |
+| **Package Manager** | pnpm |
+| **Deployment** | Vercel (with Edge Runtime for webhooks) |
+
+## Project Structure
+
+```
+.
+├── app/
+│   ├── actions/                  # Server Actions
+│   │   ├── billing.ts            # Stripe billing portal redirect
+│   │   ├── checkout.ts           # Stripe checkout session creation
+│   │   ├── deleteAccount.ts      # Account deletion
+│   │   ├── upload.ts             # Photo upload to R2
+│   │   └── uploadAgePredict.ts   # Age prediction via Replicate
+│   ├── api/
+│   │   └── webhooks/
+│   │       ├── replicate/        # Replicate webhook (prediction results)
+│   │       ├── stripe/           # Stripe webhook (product/price/checkout sync)
+│   │       └── supabase/
+│   │           └── customer/     # Supabase webhook (customer CRUD sync to Stripe)
+│   ├── gallery/                  # Gallery page
+│   └── p/[id]/                   # Public photo page
+├── components/                   # React components (UI, layout, shared)
+├── lib/
+│   ├── constants.ts              # App constants
+│   ├── dub.ts                    # Dub (Dub.sh) client
+│   ├── hooks/                    # Custom React hooks
+│   ├── stripe.ts                 # ✨ Centralized Stripe client initialization
+│   ├── supabase/                 # Supabase client (server, admin, browser, types)
+│   ├── types.ts                  # Shared type definitions
+│   └── utils.ts                  # Utility functions (URL, formatters, etc.)
+├── public/                       # Static assets
+└── stripe/                       # Stripe fixture files (for local testing)
+```
+
+### Key Modules
+
+#### `lib/stripe.ts` — Centralized Stripe Client
+
+All Stripe initialization is consolidated into a single utility module, eliminating duplicate environment-check logic across 4 files. It provides:
+
+- **`getStripeClient()`** — Returns a cached `Stripe` instance with the correct secret key for the current environment (production vs. test).
+- **`getStripeWebhookSecret()`** — Returns the environment-appropriate webhook signing secret.
+- **`getStripeCustomerField(userData)`** — Resolves the correct Stripe customer ID field (`stripe_id` in production, `stripe_id_dev` otherwise).
+- **`isProduction()`** — Reusable environment check.
+
+## Architecture
+
+### Stripe Integration
+
+```
+┌──────────────┐     ┌─────────────────┐     ┌──────────────┐
+│  Server      │────▶│  lib/stripe.ts  │────▶│  Stripe API  │
+│  Actions     │     │  (shared util)  │     │              │
+│  (checkout,  │     │                 │     │  - Checkout  │
+│   billing)   │     │  - getStripeClient()    │  - Billing   │
+├──────────────┤     │  - getStripeCustomerField()    │  Portal      │
+│  Webhooks    │     │  - getStripeWebhookSecret()    └──────────────┘
+│  (stripe,    │     └─────────────────┘
+│   supabase)  │
+└──────────────┘
+```
+
+The Stripe client is instantiated once (module-level singleton) and reused across requests. The correct secret key (`STRIPE_SECRET_KEY` or `STRIPE_SECRET_KEY_TEST`) is selected based on the `NEXT_PUBLIC_VERCEL_ENV` environment variable.
+
+## Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in the values:
+
+| Variable | Description |
+|---|---|
+| `REPLICATE_API_TOKEN` | Replicate API token for AI model inference |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous API key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for admin operations) |
+| `STRIPE_SECRET_KEY` | Stripe secret key (production) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret (production) |
+| `STRIPE_SECRET_KEY_TEST` | Stripe secret key (development/testing) |
+| `STRIPE_WEBHOOK_SECRET_TEST` | Stripe webhook signing secret (development/testing) |
+| `CRON_SECRET` | Secret for cron job authentication |
+| `TUNNEL_URL` | Cloudflare tunnel URL (for local webhook testing) |
 
 ## Deploy Your Own
 
@@ -45,11 +144,12 @@ You can deploy this template to Vercel with the button below:
 
 Note that you'll need to:
 
-- Set up a [ReplicateHQ](https://replicate.com) account to get the `REPLICATE_API_TOKEN` env var.
+- Set up a [Replicate](https://replicate.com) account to get the `REPLICATE_API_TOKEN` env var.
 - Set up an [Upstash](https://upstash.com) account to get the Upstash Redis env vars.
-- Create a [Cloudflare R2 instance](https://www.cloudflare.com/lp/pg-r2/) and set up a [Cloudflare Worker](https://workers.cloudflare.com/) to handle uploads & reads (instructions below).
+- Set up [Stripe](https://stripe.com) to get the Stripe secret and webhook keys.
+- Create a [Cloudflare R2 instance](https://www.cloudflare.com/lp/pg-r2/) and set up a [Cloudflare Worker](https://workers.cloudflare.com/) to handle uploads & reads.
 
-### Cloudflare R2 setup instructions
+### Cloudflare R2 Setup Instructions
 
 1. Go to Cloudflare and create an [R2 bucket](https://www.cloudflare.com/lp/pg-r2/).
 2. Create a [Cloudflare Worker](https://workers.cloudflare.com/) using the code snippet below.
@@ -122,6 +222,45 @@ export default {
 ```
 
 </details>
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start the dev server
+pnpm dev
+
+# Tunnel for webhook testing (exposes localhost via Cloudflare)
+pnpm tunnel
+
+# Seed Stripe with test products/prices
+pnpm fixtures:products
+
+# Trigger test Stripe webhook events
+pnpm fixtures:webhook
+
+# Generate Supabase types from remote schema
+pnpm gen-types
+
+# Lint
+pnpm lint
+
+# Format
+pnpm format:write
+```
+
+### Stripe Webhook Testing
+
+1. Run the dev server and tunnel: `pnpm dev` + `pnpm tunnel`
+2. Set the tunnel URL as `TUNNEL_URL` in `.env.local`
+3. Set up Stripe CLI webhook forwarding:
+   ```bash
+   stripe listen --forward-to https://your-tunnel-url.ngrok.app/api/webhooks/stripe
+   ```
+4. Seed test data: `pnpm fixtures:products`
+5. Trigger events: `pnpm fixtures:webhook`
 
 ## Author
 

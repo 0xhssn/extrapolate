@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { StripePrice, StripeProduct } from "@/lib/types";
 import type { PostgrestError } from "@supabase/supabase-js";
+import { getStripeClient, getStripeWebhookSecret } from "@/lib/stripe";
 
 export const runtime = "edge";
 
@@ -11,17 +12,10 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   const supabase = createAdminClient();
-  const stripe = new Stripe(
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-      ? process.env.STRIPE_SECRET_KEY!
-      : process.env.STRIPE_SECRET_KEY_TEST!,
-  );
+  const stripe = getStripeClient();
 
   // verify webhook
-  const webhookSecret =
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-      ? process.env.STRIPE_WEBHOOK_SECRET
-      : process.env.STRIPE_WEBHOOK_SECRET_TEST;
+  const webhookSecret = getStripeWebhookSecret();
   const signature = req.headers.get("stripe-signature");
   try {
     if (!webhookSecret || !signature) {
