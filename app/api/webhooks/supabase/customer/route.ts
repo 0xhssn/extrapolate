@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { UserData } from "@/lib/types";
+import { getStripeClient } from "@/lib/stripe";
 
 export const runtime = "edge";
 
@@ -17,11 +17,7 @@ export async function POST(req: NextRequest) {
   const body = (await req.json()) as SupabaseWebhook;
 
   const supabase = createAdminClient();
-  const stripe = new Stripe(
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-      ? process.env.STRIPE_SECRET_KEY!
-      : process.env.STRIPE_SECRET_KEY_TEST!,
-  );
+  const stripe = getStripeClient();
 
   const record = body.record as UserData;
   const old_record = body.old_record as UserData;
